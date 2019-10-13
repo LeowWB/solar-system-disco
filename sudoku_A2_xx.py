@@ -9,7 +9,6 @@
 
 import sys
 import copy
-import heapq
 
 class Sudoku(object):
     def __init__(self, puzzle):
@@ -19,7 +18,7 @@ class Sudoku(object):
 
 
     def solve(self):
-        board, queue, cell = self.init_everything(puzzle) # cell -> most constrained variable
+        board, cell = self.init_everything(puzzle) # cell -> most constrained variable
 
         just_backtracked = False
 
@@ -103,21 +102,6 @@ class Sudoku(object):
                     cell.legal_values[neighbor.value] = False
 
 
-    def queue_all_cells(self, board):
-        queue = Heap()
-        
-        for i in range(9):
-            for j in range(9):
-                cell = board[i][j]
-
-                if cell.value == 0:
-                    queue.push_without_sift(cell)
-        
-        queue.heapify()
-        return queue
-
-
-
 
 
 
@@ -145,9 +129,8 @@ class Sudoku(object):
         board = self.generate_board(self.puzzle)
         self.init_constraint_neighbors(board)
         self.init_legal_values(board)
-        queue = self.queue_all_cells(board)
-        cell = queue.pop()
-        return (board, queue, cell)
+        cell = self.get_most_constrained(board)
+        return (board, cell)
 
     def generate_board(self, puzzle):
         board = []
@@ -286,51 +269,6 @@ class Cell(object):
 
 
 
-
-
-
-
-
-
-"""
-    NOTE it's a min heap
-"""
-class Heap(object):
-    def __init__(self):
-        self.list = []
-        self.outed = set()
-        self.order = 0
-
-    def peek(self):
-        return self.tuple_to_cell(self.list[0])
-
-    def push_without_sift(self, cell):
-        self.list.append(self.cell_to_tuple(cell))
-
-    def push(self, cell):
-        heapq.heappush(self.list, self.cell_to_tuple(cell))
-
-    def pop(self):
-        rv = self.tuple_to_cell(heapq.heappop(self.list))
-        
-        if rv in self.outed:
-            return self.pop()
-        else:
-            self.outed.add(rv)
-            return rv
-
-    def size(self):
-        return len(self.list)
-    
-    def heapify(self):
-        heapq.heapify(self.list)
-
-    def cell_to_tuple(self, cell):
-        self.order += 1
-        return (cell.legal_count(), self.order, cell)
-
-    def tuple_to_cell(self, tuple):
-        return tuple[2]
 
 
 
