@@ -61,6 +61,64 @@ class Sudoku(object):
 
 
 
+    def forward_check(self, cell):
+        for neighbor in cell.neighbors:
+            if neighbor.given:
+                continue
+
+            if neighbor.legal_count() == 1 and neighbor.legal_values[cell.value]:
+                return False
+        
+        for neighbor in cell.neighbors:
+            if neighbor.value == 0:
+                neighbor.legal_values[cell.value] = False
+        
+        return True
+
+
+    def init_legal_values(self, board):
+        for i in range(9):
+            for j in range(9):
+                cell = board[i][j]
+
+                if cell.given:
+                    continue
+                
+                cell.open_all_legal_values()
+                
+                for neighbor in cell.neighbors:
+                    if neighbor.value == 0:
+                        continue
+                    
+                    cell.legal_values[neighbor.value] = False
+
+
+    def queue_all_cells(self, board):
+        queue = Heap()
+        
+        for i in range(9):
+            for j in range(9):
+                cell = board[i][j]
+
+                if cell.value == 0:
+                    queue.push_without_sift(cell)
+        
+        queue.heapify()
+        return queue
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def print_board(self, board):
         for r in board:
             for c in r:
@@ -80,22 +138,6 @@ class Sudoku(object):
         queue = self.queue_all_cells(board)
         cell = queue.pop()
         return (board, queue, cell)
-
-
-    def forward_check(self, cell):
-        for neighbor in cell.neighbors:
-            if neighbor.given:
-                continue
-
-            if neighbor.legal_count() == 1 and neighbor.legal_values[cell.value]:
-                return False
-        
-        for neighbor in cell.neighbors:
-            if neighbor.value == 0:
-                neighbor.legal_values[cell.value] = False
-        
-        return True
-
 
     def generate_board(self, puzzle):
         board = []
@@ -138,46 +180,12 @@ class Sudoku(object):
                             y
                         )
 
-
-
     def try_neighbor(self, cell, board, x, y):
         other = board[x][y]
 
         if not other.equals(cell):
             cell.add_neighbor(other)
 
-
-    def init_legal_values(self, board):
-        for i in range(9):
-            for j in range(9):
-                cell = board[i][j]
-
-                if cell.given:
-                    continue
-                
-                cell.open_all_legal_values()
-                
-                for neighbor in cell.neighbors:
-                    if neighbor.value == 0:
-                        continue
-                    
-                    cell.legal_values[neighbor.value] = False
-
-
-
-
-    def queue_all_cells(self, board):
-        queue = Heap()
-        
-        for i in range(9):
-            for j in range(9):
-                cell = board[i][j]
-
-                if cell.value == 0:
-                    queue.push_without_sift(cell)
-        
-        queue.heapify()
-        return queue
 
     def board_to_2d_int_array(self, board):
         rv = []
@@ -189,6 +197,21 @@ class Sudoku(object):
                 row.append(board[i][j].value)
         
         return rv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
