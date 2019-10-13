@@ -15,7 +15,6 @@ import copy
 class Sudoku(object):
     def __init__(self, puzzle):
         self.puzzle = puzzle                # self.puzzle is a list of lists
-        self.ans = copy.deepcopy(puzzle)    # self.ans is a list of lists
         self.history = []
 
 
