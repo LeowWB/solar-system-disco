@@ -23,7 +23,7 @@ class Sudoku(object):
 
         just_backtracked = False
 
-        while queue.size() > 0:
+        while True:
 
             if just_backtracked:
                 self.init_legal_values(board)   # problem is that afte3r backtracking, u don't reinitr correclty. u do it ased on old val.
@@ -50,7 +50,11 @@ class Sudoku(object):
 
             queue.heapify() #doesn't work.
             self.history.append(cell)
-            cell = queue.pop()  # this is the cell representing the most constrained variable
+
+            if queue.size() > 0:
+                cell = queue.pop()  # this is the cell representing the most constrained variable
+            else:
+                break
 
         self.ans = self.board_to_2d_int_array(board)
         return self.ans
