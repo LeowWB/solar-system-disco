@@ -288,17 +288,26 @@ class Cell(object):
 class Heap(object):
     def __init__(self):
         self.list = []
+        self.outed = set()
         self.order = 0
 
     def peek(self):
-        return self.list[0][2]
+        return self.tuple_to_cell(self.list[0])
 
     def push_without_sift(self, cell):
-        self.list.append((cell.legal_count(), self.order, cell))
-        self.order += 1
+        self.list.append(self.cell_to_tuple(cell))
+
+    def push(self, cell):
+        heapq.heappush(self.list, self.cell_to_tuple(cell))
 
     def pop(self):
-        return heapq.heappop(self.list)[2]
+        rv = self.tuple_to_cell(heapq.heappop(self.list))
+        
+        if rv in self.outed:
+            return self.pop()
+        else:
+            self.outed.add(rv)
+            return rv
 
     def size(self):
         return len(self.list)
@@ -306,7 +315,12 @@ class Heap(object):
     def heapify(self):
         heapq.heapify(self.list)
 
+    def cell_to_tuple(self, cell):
+        self.order += 1
+        return (cell.legal_count(), self.order, cell)
 
+    def tuple_to_cell(self, tuple):
+        return tuple[2]
 
 
 
