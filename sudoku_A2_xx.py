@@ -1,6 +1,8 @@
 """
     NOTE: use self.puzzle instead of puzzle
 
+    NOTE: backing up legal values takes too long. we prefer to re-initialize whenever required.
+
     TODO
     remove all the debugging st8ments, incl. print()
     to_str in cell class
