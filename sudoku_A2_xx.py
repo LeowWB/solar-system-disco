@@ -28,7 +28,7 @@ class Sudoku(object):
                 self.init_legal_values(board)   # problem is that afte3r backtracking, u don't reinitr correclty. u do it ased on old val.
                 
 
-            next_val = cell.next_larger_legal_value()
+            next_val = cell.get_next_larger_legal_value()
 
             # backtracking
             if next_val == -1:
@@ -43,12 +43,12 @@ class Sudoku(object):
                 self.init_legal_values(board)   # problem is that afte3r backtracking, u don't reinitr correclty. u do it ased on old val.
                 just_backtracked = False
             else:
-                if not self.forward_check(cell):
+                if not self.forward_check_from(cell):
                     continue
 
             self.history.append(cell)
 
-            cell = self.get_most_constrained(board)
+            cell = self.get_most_constrained_cell(board)
 
             if cell == None:
                 break
@@ -57,7 +57,7 @@ class Sudoku(object):
         return self.ans
 
 
-    def get_most_constrained(self, board):
+    def get_most_constrained_cell(self, board):
         
         min_val = 9
         min_cell = None
@@ -70,7 +70,7 @@ class Sudoku(object):
         
         return min_cell
 
-    def forward_check(self, cell):
+    def forward_check_from(self, cell):
         for neighbor in cell.neighbors:
             if neighbor.given:
                 continue
@@ -129,7 +129,7 @@ class Sudoku(object):
         board = self.generate_board(self.puzzle)
         self.init_constraint_neighbors(board)
         self.init_legal_values(board)
-        cell = self.get_most_constrained(board)
+        cell = self.get_most_constrained_cell(board)
         return (board, cell)
 
     def generate_board(self, puzzle):
@@ -238,7 +238,7 @@ class Cell(object):
     def equals(self, other):
         return (self.x == other.x) and (self.y == other.y)
 
-    def next_larger_legal_value(self):
+    def get_next_larger_legal_value(self):
         for i in range(self.value + 1, 10):
             if self.legal_values[i]:
                 return i
