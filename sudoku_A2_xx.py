@@ -62,8 +62,8 @@ class Sudoku(object):
 
         for r in board:
             for c in r:
-                if c.value == 0 and c.legal_count() < min_val:
-                    min_val = c.legal_count()
+                if c.value == 0 and c.count_legal_values() < min_val:
+                    min_val = c.count_legal_values()
                     min_cell = c
         
         return min_cell
@@ -82,7 +82,7 @@ class Sudoku(object):
                 continue
 
             # forward checking fails because the neighbor's only legal value is the same as this cell's current value
-            if neighbor.legal_count() == 1 and neighbor.legal_values[cell.value]:
+            if neighbor.count_legal_values() == 1 and neighbor.legal_values[cell.value]:
                 return False
         
         for neighbor in cell.neighbors:
@@ -106,29 +106,29 @@ class Sudoku(object):
     # this cell, or return False otherwise.
     def propagate_arc_consistency_from(self, cell):
 
-        if cell.legal_count() > 1:
+        if cell.count_legal_values() > 1:
             return True
 
         affected_neighbors = []
 
-        for n in cell.neighbors:
+        for neighbor in cell.neighbors:
 
-            if n.value != 0:
+            if neighbor.value != 0:
                 continue
 
             for i in range(1, 10):
-                if not n.legal_values[i]:
+                if not neighbor.legal_values[i]:
                     continue
                 if cell.legal_values[i]:
-                    n.legal_values[i] = False
-                    affected_neighbors.append(n)
+                    neighbor.legal_values[i] = False
+                    affected_neighbors.append(neighbor)
                     continue
         
         if len(affected_neighbors) == 0:
             return True
         
-        for n in affected_neighbors:
-            if not self.propagate_arc_consistency_from(n):
+        for neighbor in affected_neighbors:
+            if not self.propagate_arc_consistency_from(neighbor):
                 return False
         
         return True
@@ -171,7 +171,7 @@ class Sudoku(object):
         self.init_legal_values(board)
         cell = self.get_most_constrained_cell(board)
 
-        while (cell.legal_count() == 1):
+        while (cell.count_legal_values() == 1):
             self.propagate_arc_consistency_from(cell)
             cell = self.get_most_constrained_cell(board)
 
@@ -264,7 +264,7 @@ class Cell(object):
     
     # this method should never be called on a Cell that was given in the problem input.
     # there is no check for the above scenario because the programmer wants an exception to be thrown.
-    def legal_count(self):
+    def count_legal_values(self):
         count = 0
 
         for b in self.legal_values:
