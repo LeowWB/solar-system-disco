@@ -1,11 +1,5 @@
 """
-    NOTE: use self.puzzle instead of puzzle
-
     NOTE: backing up legal values takes too long. we prefer to re-initialize whenever required.
-
-    TODO
-    remove all the debugging st8ments, incl. print()
-    to_str in cell class
 """
 
 
@@ -26,7 +20,7 @@ class Sudoku(object):
         while True:
 
             if just_backtracked:
-                self.init_legal_values(board)   # problem is that afte3r backtracking, u don't reinitr correclty. u do it ased on old val.
+                self.init_legal_values(board)
                 
 
             next_val = cell.get_next_larger_legal_value()
@@ -41,7 +35,7 @@ class Sudoku(object):
             cell.value = next_val
 
             if just_backtracked:
-                self.init_legal_values(board)   # problem is that afte3r backtracking, u don't reinitr correclty. u do it ased on old val.
+                self.init_legal_values(board)
                 just_backtracked = False
             else:
                 if not self.forward_check_from(cell):
@@ -98,7 +92,6 @@ class Sudoku(object):
         return True
 
 
-    # TODO propag8 from all with one.
     def propagate_arc_consistency_from(self, cell):
 
         if cell.legal_count() > 1:
@@ -155,19 +148,6 @@ class Sudoku(object):
 
 
 
-
-
-
-    def print_board(self, board):
-        for r in board:
-            for c in r:
-                if c.value == 0:
-                    print(" ", end=" ")
-                else:
-                    print(str(c.value), end=' ')
-
-            print("\n", end='')
-        print("\n")
 
 
     def init_everything(self, puzzle):
@@ -301,9 +281,6 @@ class Cell(object):
         for i in range(9):
             self.legal_values.append(True)
     
-    def to_str(self):
-        return str(self.x) + " " + str(self.y)
-
 
 
 
