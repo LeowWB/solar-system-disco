@@ -98,32 +98,33 @@ class Sudoku(object):
         return True
 
 
+    # TODO propag8 from all with one.
     def propagate_arc_consistency_from(self, cell):
 
-        changed = False
-
-        for i in range(1, 10):
-            if not cell.legal_values[i]:
-                continue
-
-            for n in cell.neighbors:
-                if n.value != 0:
-                    continue
-
-                if n.legal_count() == 1 and n.legal_values[i]:
-                    cell.legal_values[i] = False
-                    changed = True
-                    break
-        
-        if cell.legal_count() == 0:
-            return False
-        
-        if not changed:
+        if cell.legal_count() > 1:
             return True
 
-        #for n in cell.neighbors:
-        #    if n.value == 0 and not self.propagate_arc_consistency_from(n):
-        #        return False
+        affected_neighbors = []
+
+        for n in cell.neighbors:
+
+            if n.value != 0:
+                continue
+
+            for i in range(1, 10):
+                if not n.legal_values[i]:
+                    continue
+                if cell.legal_values[i]:
+                    n.legal_values[i] = False
+                    affected_neighbors.append(n)
+                    continue
+        
+        if len(affected_neighbors) == 0:
+            return True
+        
+        for n in affected_neighbors:
+            if not self.propagate_arc_consistency_from(n):
+                return False
         
         return True
         
@@ -174,6 +175,11 @@ class Sudoku(object):
         self.init_constraint_neighbors(board)
         self.init_legal_values(board)
         cell = self.get_most_constrained_cell(board)
+
+        while (cell.legal_count() == 1):
+            self.propagate_arc_consistency_from(cell)
+            cell = self.get_most_constrained_cell(board)
+
         return (board, cell)
 
     def generate_board(self, puzzle):
