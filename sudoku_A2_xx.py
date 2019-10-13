@@ -44,6 +44,7 @@ class Sudoku(object):
                 just_backtracked = False
             else:
                 if not self.forward_check_from(cell):
+                    self.init_legal_values(board)
                     continue
 
             self.history.append(cell)
@@ -55,6 +56,7 @@ class Sudoku(object):
 
         self.ans = self.board_to_2d_int_array(board)
         return self.ans
+
 
 
     def get_most_constrained_cell(self, board):
@@ -71,6 +73,8 @@ class Sudoku(object):
         return min_cell
 
     def forward_check_from(self, cell):
+        affected_neighbors = []
+
         for neighbor in cell.neighbors:
             if neighbor.given:
                 continue
@@ -79,10 +83,49 @@ class Sudoku(object):
                 return False
         
         for neighbor in cell.neighbors:
-            if neighbor.value == 0:
+            if neighbor.value == 0 and neighbor.legal_values[cell.value]:
                 neighbor.legal_values[cell.value] = False
+                affected_neighbors.append(neighbor)
+
+        if len(affected_neighbors) == 0:
+            return True
+        
+        for neighbor in affected_neighbors:
+            if not self.propagate_arc_consistency_from(neighbor):
+                return False
         
         return True
+
+
+    def propagate_arc_consistency_from(self, cell):
+
+        changed = False
+
+        for i in range(1, 10):
+            if not cell.legal_values[i]:
+                continue
+
+            for n in cell.neighbors:
+                if n.value != 0:
+                    continue
+
+                if n.legal_count() == 1 and n.legal_values[i]:
+                    cell.legal_values[i] = False
+                    changed = True
+                    break
+        
+        if cell.legal_count() == 0:
+            return False
+        
+        if not changed:
+            return True
+
+        #for n in cell.neighbors:
+        #    if n.value == 0 and not self.propagate_arc_consistency_from(n):
+        #        return False
+        
+        return True
+        
 
 
     def init_legal_values(self, board):
