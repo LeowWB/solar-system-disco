@@ -42,24 +42,34 @@ class Sudoku(object):
 
             if just_backtracked:
                 self.init_legal_values(board)   # problem is that afte3r backtracking, u don't reinitr correclty. u do it ased on old val.
-                queue = self.queue_all_cells(board)
                 just_backtracked = False
             else:
                 if not self.forward_check(cell):
                     continue
 
-            queue.heapify() #doesn't work.
             self.history.append(cell)
 
-            if queue.size() > 0:
-                cell = queue.pop()  # this is the cell representing the most constrained variable
-            else:
+            cell = self.get_most_constrained(board)
+
+            if cell == None:
                 break
 
         self.ans = self.board_to_2d_int_array(board)
         return self.ans
 
 
+    def get_most_constrained(self, board):
+        
+        min_val = 9
+        min_cell = None
+
+        for r in board:
+            for c in r:
+                if c.value == 0 and c.legal_count() < min_val:
+                    min_val = c.legal_count()
+                    min_cell = c
+        
+        return min_cell
 
     def forward_check(self, cell):
         for neighbor in cell.neighbors:
