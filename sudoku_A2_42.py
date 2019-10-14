@@ -21,10 +21,11 @@ class Sudoku(object):
             if just_backtracked:                        # re-initialize the possible legal values of each cell.
                 self.init_legal_values(board)
                 
-            next_val = cell.get_next_larger_legal_value()
+            next_val = cell.choose_next_value()
 
             if next_val == -1:                          # backtrack when no more legal values
                 cell.value = 0
+                cell.refresh_value_order()
                 cell = self.history.pop()
                 just_backtracked = True
                 continue
@@ -261,7 +262,8 @@ class Cell(object):
 
         if not self.given:
             self.open_all_legal_values()
-    
+            self.refresh_value_order()
+
     # this method should never be called on a Cell that was given in the problem input.
     # there is no check for the above scenario because the programmer wants an exception to be thrown.
     def count_legal_values(self):
@@ -286,6 +288,38 @@ class Cell(object):
                 return i
         
         return -1
+
+    def refresh_value_order(self):
+        self.val_order = None
+
+    def choose_next_value(self):
+
+        if self.val_order != None:
+            if len(self.val_order) == 0:
+                return -1
+            else:
+                return self.val_order.pop()[1]
+
+        self.val_order = []
+
+        for i in range(1, 10):
+            if not self.legal_values[i]:
+                continue
+
+            current_constraint_count = 0
+            
+            for neighbor in self.neighbors:
+                if neighbor.given:
+                    continue
+
+                if neighbor.legal_values[i]:
+                    current_constraint_count += 1
+            
+            self.val_order.append((current_constraint_count, i))
+
+        self.val_order = sorted(self.val_order, reverse=True)
+        return self.choose_next_value()
+
 
     def open_all_legal_values(self):
         self.legal_values = [None] # make a one-indexed list.
