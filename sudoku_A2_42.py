@@ -18,19 +18,18 @@ class Sudoku(object):
         just_backtracked = False
 
         while True:
-            if just_backtracked:                        # re-initialize the possible legal values of each cell.
-                self.init_legal_values(board)
-                
             next_val = cell.choose_next_value()
 
             if next_val == -1:                          # backtrack when no more legal values
                 cell.value = 0
+                self.propagate_arc_consistency_from(cell)
                 cell.refresh_value_order()
                 cell = self.history.pop()
                 just_backtracked = True
                 continue
 
             cell.value = next_val
+            self.propagate_arc_consistency_from(cell)
 
             if just_backtracked:
                 self.init_legal_values(board)
@@ -93,11 +92,6 @@ class Sudoku(object):
                 neighbor.legal_values[cell.value] = False
                 affected_neighbors.append(neighbor)
 
-        # some neighbors had their legal domains reduced, so we propagate arc consistency.
-        for neighbor in affected_neighbors:
-            if not self.propagate_arc_consistency_from(neighbor):
-                return False
-        
         return True
 
 
@@ -110,13 +104,15 @@ class Sudoku(object):
 
         # we ensure domains are kept up to date. as such, if the current cell has more than 1 value
         # in its domain, then the domains of its neighbors need not be reduced.
-        if cell.count_legal_values() > 1:
-            return True
+        if not cell.given:
+            if cell.count_legal_values() > 1:
+                return True
+            elif cell.count_legal_values() == 0:
+                return False
 
         affected_neighbors = []
 
         for neighbor in cell.neighbors:
-
             # neighbor already has a value. no need to modify its domain.
             if neighbor.value != 0:
                 continue
@@ -125,13 +121,10 @@ class Sudoku(object):
             for i in range(1, 10):
                 if not neighbor.legal_values[i]:
                     continue
-                if cell.legal_values[i]:
+                if cell.value == i or (cell.value == 0 and cell.legal_values[i]):
                     neighbor.legal_values[i] = False
                     affected_neighbors.append(neighbor)
                     continue
-        
-        if len(affected_neighbors) == 0:
-            return True
         
         for neighbor in affected_neighbors:
             if not self.propagate_arc_consistency_from(neighbor):
@@ -145,6 +138,20 @@ class Sudoku(object):
     # backtracking, since doing so may re-open some values as being legal.
     # the programmer has found that re-initializing the legal values from scratch each time is faster
     # than having to "remember" these lists each time a cell is filled.
+    def init_legal_values_ac(self, board):
+        for i in range(9):
+            for j in range(9):
+                cell = board[i][j]
+
+                if cell.given:
+                    continue
+                
+                cell.open_all_legal_values()
+        
+        for i in range(9):
+            for j in range(9):
+                self.propagate_arc_consistency_from(board[i][j])
+    
     def init_legal_values(self, board):
         for i in range(9):
             for j in range(9):
@@ -174,12 +181,8 @@ class Sudoku(object):
     def init_everything(self, puzzle):
         board = self.generate_board(self.puzzle)
         self.init_constraint_neighbors(board)
-        self.init_legal_values(board)
+        self.init_legal_values_ac(board)
         cell = self.get_most_constrained_cell(board)
-
-        while (cell.count_legal_values() == 1):
-            self.propagate_arc_consistency_from(cell)
-            cell = self.get_most_constrained_cell(board)
 
         return (board, cell)
 
@@ -202,9 +205,6 @@ class Sudoku(object):
         for i in range(9):
             for j in range(9):
                 cell = board[i][j]
-
-                if cell.given:
-                    continue
 
                 for k in range(9):
                     self.try_neighbor(cell, board, i, k)
