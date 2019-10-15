@@ -78,22 +78,22 @@ class Sudoku(object):
     def forward_check_from(self, cell):
         affected_neighbors = []
 
+        # if neighbor already has a value, we don't need to worry about what other values are legal for it
         for neighbor in cell.neighbors:
-            if neighbor.given:
+            if neighbor.value != 0:
                 continue
 
             # forward checking fails because the neighbor's only legal value is the same as this cell's current value
             if neighbor.count_legal_values() == 1 and neighbor.legal_values[cell.value]:
                 return False
         
+        # neighbors of this cell cannot legally have the same value as this cell
         for neighbor in cell.neighbors:
             if neighbor.value == 0 and neighbor.legal_values[cell.value]:
                 neighbor.legal_values[cell.value] = False
                 affected_neighbors.append(neighbor)
 
-        if len(affected_neighbors) == 0:
-            return True
-        
+        # some neighbors had their legal domains reduced, so we propagate arc consistency.
         for neighbor in affected_neighbors:
             if not self.propagate_arc_consistency_from(neighbor):
                 return False
@@ -102,11 +102,14 @@ class Sudoku(object):
 
 
 
-    # propagates arc-consistency starting from a given cell. it is assumed that this cell has recently
-    # lost one or more legal values. this method will ensure that all neighbors remain arc-consistent with
-    # this cell, or return False otherwise.
+    # propagates arc-consistency. given a cell c, ensures that the following holds true for every
+    # neighbor n:
+    # for every value in domain of n, there is some value in domain of c s.t. the constraint holds.
+    # if this is not the case then domain of n will be reduced.
     def propagate_arc_consistency_from(self, cell):
 
+        # we ensure domains are kept up to date. as such, if the current cell has more than 1 value
+        # in its domain, then the domains of its neighbors need not be reduced.
         if cell.count_legal_values() > 1:
             return True
 
@@ -114,9 +117,11 @@ class Sudoku(object):
 
         for neighbor in cell.neighbors:
 
+            # neighbor already has a value. no need to modify its domain.
             if neighbor.value != 0:
                 continue
 
+            # loop through all legal values in domain of neighbor
             for i in range(1, 10):
                 if not neighbor.legal_values[i]:
                     continue
