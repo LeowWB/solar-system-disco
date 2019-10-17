@@ -29,7 +29,7 @@ class Sudoku(object):
                 continue
 
             cell.value = next_val
-            self.propagate_arc_consistency_from(cell)
+            self.propagate_arc_consistency_from(cell)   # arc-consistency
 
             if just_backtracked:
                 self.init_legal_values(board)
@@ -133,11 +133,8 @@ class Sudoku(object):
         return True
         
 
-
-    # initializes the list of legal values for all cells in the board. this method is called after
-    # backtracking, since doing so may re-open some values as being legal.
-    # the programmer has found that re-initializing the legal values from scratch each time is faster
-    # than having to "remember" these lists each time a cell is filled.
+    # initializes the list of legal values for all cells in the board, then establishes arc-
+    # consistency.
     def init_legal_values_ac(self, board):
         for i in range(9):
             for j in range(9):
@@ -152,6 +149,9 @@ class Sudoku(object):
             for j in range(9):
                 self.propagate_arc_consistency_from(board[i][j])
     
+
+    # initializes the list of legal values for all cells in the board. this method is called after
+    # backtracking, since doing so may re-open some values as being legal.
     def init_legal_values(self, board):
         for i in range(9):
             for j in range(9):
@@ -287,16 +287,10 @@ class Cell(object):
     def equals(self, other):
         return (self.x == other.x) and (self.y == other.y)
 
-    def get_next_larger_legal_value(self):
-        for i in range(self.value + 1, 10):
-            if self.legal_values[i]:
-                return i
-        
-        return -1
-
     def refresh_value_order(self):
         self.val_order = None
 
+    # chooses a new value for this cell. values are chosen with least-constraining first.
     def choose_next_value(self):
 
         if self.val_order != None:
